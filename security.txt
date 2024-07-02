@@ -1,0 +1,499 @@
+==1==
+14. dos 공격 -> availability를 보장하지 못하게 함
+15. symmetric key 대칭키
+18. steganography 은닉
+
+==2==
+16. security level 은 26개이다. (key가 될 수 있는 개수)
+18. key를 찾아내는게 공격방법임
+- 암호문만 가지고 공격
+- 대외적으로 알려진 plaintext를 이용해서 공격
+- 암호 머신을 갖고 있어서 plaintext를 선택적으로 공격
+- ciphertext를 선택적으로 복호화 머신을 이용해 plaintext를 얻음
+  공격자 입장에선 위로 갈수록 어렵다
+20. plaintext p에 대한 암호문을 앎
+21. cipher cycle에 넣어서 앎 (attack4는 거꾸로)
+24. 치환테이블을 이용해 한 글자 씩 대체됨. 경우의 수 : 26x25x24... (26!)
+35. 한 글자만 바꾸는게 아니라 짝을 지어 바꿈 (중복을 시킴). a와 r을 한꺼번에 바꾼다. (같은 행이면 오른쪽 쉬프팅). m과 u는 밑으로 쉬프팅(같은 열일 경우). 엇갈린 위치면 수선을 그어서 두 개 단어를 구함
+36. 같은 단어가 한 단어에 나오면 중간에 임의의 단어를 넣음
+39. 다수 치환 방법
+42. key는 deceptive라는 키워드를 반복해놓음
+45. Meet me after ~ 처럼 포지션을 위아래로 바꿈 (홀수를 위, 짝수를 아래로).
+46. 이전 방식들은 suvstitue이고 이건 permutation(전치). attack postponed until ~ 하고 padding 붙임. 특정 열로 정한 뒤 위치를 바꿈
+50. 21과 26이 전기적으로 연결되어있음. a->24 하고 나면 한칸 밑으로가서 다음 a는 6이 됨
+
+
+==3. Block Ciphers & DES==
+- block : 덩어리 단위로 한번에 처리. stream : 순차적으로 처리
+- stream은 들어오는 족족 xor 시킴 -> 바로 암호화만듦
+5. x0 라는 걸 so로 xor 시키고 yo를 한다. e_si(xi)는 xi를 si라는 streaming으로 encryption한다. mod2는 (xi+si)  전체에 모듈러 해준다는 뜻이다. 동그라미 +가 저 식이다.
+6. 입력에 관계없이 암호학의 복잡성을 유지시켜주기에 xor 사용. 절대적인 기준되는 시그널이 있으면 '동기'이다. key stream generator로 들어오는 족족 암호화시킴. 동기는 generator에만 의존됨 (절대적 기준), 비동기는 점선에 의해서도 영향을 받음 (출력에 의해서도 영향).
+7. modulo 2를 쓰는 이유 (XOR). xor 쓰면 si의 복잡성이 잘 전달된다. 만약 AND라면 입력이 0일때 무조건 0임 즉 입력이 0일 수도 있고 si가 0일 수도 있음. (*시험*)
+8. 그림의 레지스터들은 다 D flip flop이다. 클록의 라이징 에지에 따라 shift가 일어남. 두 번째 X(m+1)의 값은 쉬프트 되고 X(m+2)의 값을 가짐, 즉 0. Xm의 출력을 다시 입력으로 넣음. 근데 이때 중간(Xm+1)의 출력을 xor 시킨걸 먹임 (피드백). xm과 plaintext 가운데 선이 Si에 해당됨(이떄 plaintext는 xi, ciphertext는 yi 이다). 즉 LF에 의해서 si가 튀어나옴010을 주면 xm+2가 0, xm+1이 1 ~이다. generated sequence는 010 넣었을때 피드백 까지 받은게 나옴.
+9. 3비트니까 0~7인데 0은 안 써서 1~7까지 쓸 수 있다. 2^3 - 1의 key space를 가짐. 
+10. 2^n - 1이지만 사실상 2n개 정도만 나온다. 레지스터를 늘려가며 유추가 가능하고 recurrence가 선형적이기에 -> 안전하지 못하다 -> 안전하게 만들기 위해 비선형적인 특성을 갖게 만듦. one-time pad (=one time password). n을 크게 늘리면 one time pad가 되는듯
+16. **A5/1** : 레지스터 1,2,3의 길이가 다 다르다. r1은 19bit, r2는 22bit, r3는 23bit. 각 가운데 비트를 c로 부른다. r1,2,3 자체는 다 선형이다. majority의 (000) 이면 0, (001)이면 0, (111)이면 1. 예를 들어 (001) 이면 r1, r2만 clocking돼서 shift되고 r3는 hold된다. majority는 다수인 숫자 따라감. c에서 탭 아웃되는 값들로 majority를 따져서 해당 레지스터만 shift되게 해서 *비선형*을 만들었다. 값에 따라 어떤 때는 가고 안 가고 하기에 비선형임. 이 레지스터들 전체 합친 xor 값이 si가 된다.  linear는 중첩의 특성을 갖고 있기에 한계가 있다
+18. **Trivium** : 레지스터 중간에 적절한 비트들이 탭아웃되면 shift가 된다. 그리고 각 레지스터에 AND 로직이 들어가 있음. majority 중 0이 하나라도 있거나 모두 1이거나에 따라 AND에 의해 값이 달라짐 -> 비선형임. ciphertext = ci, plaintext = xi, seqeucne = si 임. ci = xi xor si. si = ci xor xi. xi를 알면 si를 알고, si를 알면 lfsi의 key를 찾을 수 있는 듯
+22. substitution과 permutation으로 구현. 
+23. s-box는 외부의 key로 구현. p-box는 내부 규칙이 키이다.통계적인 특성이 diffusion에 의해서 바뀜 (p-box에 사용). confusion은 플레인텍스트와 사이퍼텍스트가 키에 의해서 복잡하게 만듦 (s-box에 사용).  c0, c1이 1, 1 이라는 건 피드백이 걸렸다는 뜻
+25. **Feistel Cipher** : 평문을 두개로 나눔 (32비트 32비트 등). 초기 R0를 F라는 박스(s와 p 박스가 숨겨져있음)를 통해 변형된 값을 왼쪽 L0과 xor 시킴. k는 confusion할 떄의 비밀정보가 들어간다는 뜻. 그 값이 R1이 됨. L1은 R0가 됨. 이걸 반복함. 오른쪽 그림은 복호화 방법이다. 복호화 떄는 k_n이 먼저 사용됨 (모두 거꾸로).  
+27. round는 위 행위의 반복횟수임. 
+33. **DES** : 블록사이즈는 64bit. key는 56bit. 남은 8비트는 패럿 키이다. X라는 값에 key를 가지고 encryption 한다는게 저 식이다. E_k(X) = E(X, k) 로 표현 가능. 뒷 그림은 Decryption임. *시험나옴*. 동일한 키이기에 대칭 키 시스템이다. 
+34. DES 블럭 내부를 표현한 그림. IP는 inital permutation. 즉 초기에 규칙대로 섞는걸 말함. F함수는 round에 각각 들어가 있음. key scheduler가 작은 key들을 생성. 56비트 중 변형을 해서 48비트의 키들로 만듦. 
+35. 각 라운드 내부를 보면, Feistel 구조와 동일.
+36. F 함수 내부를 보면, 8개의 작은 s-box 그리고 밑에 p 박스 있음. 32 xor 48은 불가하기에 32를 expansion으로 48로 확장 시켜서 서브키와 xor 함. 그걸 6비트로 다 나누고 s 박스를 통해 4비트로 치환함 (Substitution). 
+
+------
+
+40. R0가 처음 만나는 Expansion은 중복을 통해 32비트를 48비트로 늘린다. 
+47. 빨간 01이 row, 파란 1101 -> 13이 column이 되어서 9를 찾음. 
+49. ptable 따라 pbox는 difussion 함. 16이 첫 위치니까 1로 맵핑. 
+50. key는 64비트중 56비트만 리얼 키이고 8비트는 패리티 체크 피트임 (에러 감지용).
+52. 28비트 씩 쪼개서 각 라운드 별로 서브키를 생성할 때 permutation을 한다. 이때 나눠진 C, D 키(28비트)는 개별적으로 다뤄지고 1 or 2비트씩 왼쪽으로 rotate 한다. 
+
+----
+- pbox : 입력의 16번째 비트를 출력의 첫비트로 취한다는 뜻.
+
+54. 키가 64처럼 보이나 56비트만 들어감
+57. key schedule에 맞추기 위해 32비트를 48비트로 늘림.
+58. 6비트가 s박스에 들어가서 4비트가 나옴. 노란색 파트인 b0와 b5를 없애고 쉬프팅 시킴 (그래서 원클럭이 아님). 48비트를 8개의 6비트로 나누고 이 6비트를 4비트로 sbox가 출력함.
+59. s1에 0101은 테이블 행렬 따져서 5를 구해서 나온거임. s2도 010001에서 행이 01이고 열이 1000 이면 s2 테이블 (2, 8)에 해당하는 14인 1110 이  s2에 해당함. 이제 이 sbox들 모은 값들이 pbox table에 따라 맵핑되어서 값이 나옴 
+60. 그 나온 값들이 L0의 값과 xor 돼서 R1이 됨. confusion 이후 Pbox가 diffusion 시킴. 
+
+73. 한 비트만 차이를 주고 그들간 상관관계를 판단하는 분석.
+74. ECB(Electronic Codebook) 모드는 대칭 암호화 기법 중 하나로, 평문을 블록 단위로 분할하고 각 블록을 독립적으로 암호화하는 방식입니다. ECB 모드는 DES(Data Encryption Standard) 및 AES(Advanced Encryption Standard)와 같은 블록 암호화 알고리즘에서 주로 사용됩니다. ECB는 긴 암호문 블럭이 들어오면 처리가 힘든 듯
+76. ECB 한계 : 메세지 블럭으로 나열된 그래픽 데이터들은 약간의 변화로도 분석하는데 문제를 일으킴 (메세지 블럭들이 독립적으로 암호화 되어서 그럼. 
+76. 각각을 독립적으로 암호화 하면 이런 문제가 발생.
+77. 그래서 동일한 입력이라도 다르게 출력이 나오게 함. 
+79. p1과 p2 모두 0의 동일한 값을 갖는다면, 동일한 키를 썼기에 동일한 값이 나와야하나 cbc모델은 첫 결과값을 두번째 입력과 xor 시켜서 다른 입력을 넣게 함 (chaining). 결국 cipher text가 연결됨. 만약 이 c가 100까지 있다고 할 때 중간에 한 비트만 다르게해도 c100값은 매우 달라짐 (cbc-MAC 이라함). 
+80. 넘어감
+82. CFB는 위에 처럼 cipher가 feedback 되는 것, OFB는 output이 feedback 되는 것으로 나뉨. 
+83. 첫 그림 k가 encrypt된건 cipher가 아니라 P(plain text)가 xor 된 c1이 cipher text임. 64비트 중 상위 s비트를 출력한다는 뜻. 즉 CFb나 OFB는 암호화할 비트 수를 정할 수 있음. 
+86. output feedback은 cipher가 아니라 암호문의 출력이 피드백 됨. *시험* :  cfb는 plain text가 도착하는게 동기화 되어야 함. 즉 p2가 안 오면 c1이 있어도 기다려야 함. ofb는 그런 동기화가 필요 없음. 
+89. 암호문에 대해 counter를 100 등으로 잡고 인크리먼트 시켜서 encrypt 시킴. 암호문이 여러개 있을 떄 동시에 만들어 낼 수 있다 (병렬처리 가능). 대용량 처리에 유용. 
+92. *시험* GCM모드. 카운터 모드와 Galois 모드 합침. authentication : cbc-M'A'C 의 기능 가짐. 상단 파란색 CTR1~n은 counter 모드임.  CTR0은 카운터 아님. 빨간색들은 MAC 만들기 위한 연산. 0^128은 0이 128비트 있다는 뜻. 그 바로 밑에 key가 있어서 encrypt 함. GHash로 xor을 n번 함. AAD 쪽에서 초기 value가 나옴. 이걸 ctr과 합쳐서 최종적으로 TAG를 얻음. 이것도 병렬적으로 동시 처리 가능함.  TAG는 cbc mac 역할을 함. ct1~ctn까진 병렬처리 가능. AD는 이미 추가되어 있는 데이터 addtional data. 이걸로 초기값 만들어서 counter 계속 시킴 ct로. 
+ - 암호화(병렬)와 메세지 인증 값 출력(결과)을 해준다. 
+ - mac값은 chaining되어서 하나의 mac값을 만듦.  
+
+93. encryption : 초기카운터값 생성 -> 암호화시킴. Authentictaion :  평문이 xor되는 부분인 y1~yn 직선연결한 상위 박스에 해당하는 부분임. ctr0->ek에서 나오는값이 H임 (선 3개 덜 그림). polynomial multiplication을 파란색 mult로 표현. 즉 0이라는 초기 이니셜 밸류로 H와 초기세팅(ADD, mult)로 암호문에 반복적으로 집어넣음. 
+
+
+==4. Introduction to Finite Fields== 
+
+3. 모든 element가 obeys rule 따라야함. 교환법칙되는 group = abelian임. 0이 덧셈에 대한 항등원. 1의 덧셈에 대한 역원은 -1 (연산해서 항등원을 만들어내는게 역원). 
+4. *시험* :  예시처럼 그룹 조건 만족하는지 증명하라는 문제. (1,3,2)를 (3,2,1)로 permutation하라는 뜻. (1,3,2)에서 3번째 2번째 1번째 순으로 permut 되면 (2,3,1)이 나옴. 이게 파이 닷 p가 'closed' 됐다는 증명 1임.
+7. 동그라미는 composition임. f(g(x)) 처럼. 출력의 1번째는 입력의 3번째이다가 (3,1,2)의 3에 대한 설명임.
+9. 부분집합 H가 G의 연산을 만족하면 subgroup이다. Z6는 0~5임. 
+12. ~넘어감. 9+2는 11인데 z12의 12 모듈러하면 11이기에 z10의 범위를 넘어가니 subgroup 관계 자체가 될 수 없음 (closed 안됨). 
+13. 그룹 G를 generate하는 element b가 존재하는 경우 그룹 G를 사이클릭이다고 한다. 
+14. H0은 사이클릭그룹 맞음. 0으로 0 나옴. 나머지도 다 cyclib subgroup 임. 
+15. 임의 그룹 뽑았을때 그것들 다 만들어 낼 수 있어야 함.  z10* 는 0~9 중에 0 제외하고 10과 서로소인거만 취한 것. 0승은 항상 항등원이라 정의했음. 그래서 3^0 mod 10 = 1 에서 1이 항등원임. H3은 1379 모두 제너레이트 했으니 서브 그룹 맞음. 
+16. 한 연산자에 abelian group, 두번째 연산에 대해서 특정 조건 만족해야 ring임. 곱셈의 경우 distributive를 만족해야 함.
+26. -12와 5는 7에 대해 congruence(합동)이다. 
+29.  n이 (a-b)의 divisior이면 a와 b는 n에 대해 합동임. 
+32. 1과 합동인 것들을 [1] 로 표시함
+34. ab = ac mod n일 때 a, n이 소수이면 b = c가 되고 Zn은 Field가 된다. 인벌스가 존재하게 됨. 근데 소수가 아닌 Zn은 ab = ac mod n을 만족할지 언정 b != c이다. 
+35. -w는 덧셈에 대한 인버스 w^-1은 곱셈의 인버스인데 각각에 대해 존재하지 않음을 알 수 있음
+67.   GF(2) = Z2 = {0, 1}. 
+x^2+ x + 1 -> x2^2 + x + x^0
+001 -> 1, 010 -> x, 011 -> x+1 ...
+72. GF(2) 이기에 -x^8은 x^8과 같음.  (**시험**)
+
+*시험* : DES 단점 : 비트연산 너무 많음(처리속도 느리다). 너무 많이 깨짐.(키 길이가 너무 짧다 2^56).
+
+==AES==
+7. DES는 56비트 -> AES는 128비트, 192, 256.
+8. (*시험*) AES 그리는거 나옴
+14. 4words/16bytes/128bits. 초기 키 k0는 transform 0라 그대로 들어감. transform 1부터는 변형 줌. byte substitution은 confusion 이다. -> sbox 통과 시킴. shfitrow mixcolumn은 diffusion임. 맨 마지막 round는 mixcolumn 없음. 각 단계별 어떤 일 하는지 기술.
+16. 칸 하나가 바이트임. 16바이트를 16개로 표현. 
+17. Byte : substitution. 25pge에 sbox 있음. Shiftrow : 29쪽 보면 row를 1byte left rotation시킴 그 다음껀 2byte rotation 쭉. MixColumn :   GF(2^8). Addrounkey : xor 사용.
+18. encryption과 decryption이 AES에서는 components들이 다르고 DES는 똑같음. 
+22. AES는 sbox 들 끼리는 동일함 (encryption 간). 비선형임. 
+23. Diffusion은 선형임.
+24. key addition도 선형임.  
+26. 4비트씩 나눠서 1100은 C, 1011은 B임. -> 1F 찾음. 
+31. 2를 곱한다는건 한비트 left shift이다 (매트릭스의 02). 01은 그대로. 03은 레프트 한번 + 어디션 한 번. 
+33. 87 x 02 오버플로우. 1000|0111 에 2를 곱하면 leftshift 1이다 -> overflow 발생. x의 8승 생기고, 100001110이 되고 x^8은 x^4+x^3+x+1이니까 이걸 한번 더해주는거임. 
+35. 최초에 xor로 오리지널 키 한번 변형 시키고 각 라운드마다 변형시킴.
+36. 처음꺼 xor 한 후 라운드마다 add key하는 듯. 
+ - 2^8에서 8은 차수 2는 계수. 8의미는 8차로 나눠서 나누어진 최대차수. GF(2^8)의 element는 2^8개이다. 
+- 36. key schedule은 *시험 안나옴*
+40. 키도 128비트를 4개씩 칼럼순으로 배치시키고 한 세로줄이 바이트?가 되거 T펑션으로  w4,5,6,7 되는게 한 라운드다. 
+41. 배치배꾸고 sbox 각각 매김. 
+43. 처음에 입력값 들어오면 인버스로 EEA를 구하고 입력값을 transform한다. 0x63이라고 미리 정해진 상수(11000110)를 더하면 sbox가 나온다. 처음입력의 eea를 구한 transform 한것과 곱하고 constant 더해주는거임. 
+44. x^7+~ 의 eea를 구하면 00000100나옴. 그거에 대한 matrix multiplication하면 00011111이다. **시험나옴**. 
+49. 디크립션용 sbox를 갖지만 연산 자체는 동일
+50. shift row는 inverse할때 연산이 달라짐. right rotate이다. 
+51. 매트릭스를 inversion 하면됨. aes에서 사용하는 필드인 GF(2^8)인 x^8,4,3,1 그거의 inversion이다. 
+57. ~넘어감. 작은 프로세서에도 경량화로 구현할 수 있는 장점이 있다. 
+
+
+----
+----
+
+
+==Symmetric ciphers==
+
+3. des 키 길이 56비트
+4. 또 다른 56비트키로 한 번 더 쓰는게 double des. 그래서 사실상 112는 아님.
+5. k1을 인크립과 k2의 디크립이 동일하게 되는 2^56개의 키 중 하나가 실제 키가 됨. 
+6. 트리플은 더블처럼 중간에 못 만나게 함. k1-k2-k1 혹은 k2-k1-k2 방식으로 함. 이땐 서로 다른 키 두개를 썼기에 112라 할 수 있음. *여기까지 시험범위*
+10. Stream Cipher : 암호화할 데이터의 비트나 바이트 스트림에 난수 비트 스트림(키 스트림)을 XOR 연산하는 방식으로 작동하는 암호화 방식. 이 방식은 데이터를 순차적으로 처리하며, 각 비트나 바이트는 암호화될 때 바로 처리됩니다. (A5/1, RC4 등)
+13. Stream cipher의 특성
+15. 초기 S 배열 생성: S 배열을 0부터 255까지의 값으로 초기화합니다. 키 스케줄링: 키의 각 바이트를 사용하여 S 배열을 순회하면서 순열을 생성합니다. 이때, 키의 각 바이트를 사용하여 S 배열의 요소를 선택하는 인덱스 값은 키 스케줄링 알고리즘에 따라 결정됩니다. 스왑: 키 스케줄링을 통해 생성된 인덱스 값에 해당하는 S 배열의 요소들을 서로 교환(swap)합니다.
+16. i, j 초기화: i와 j라는 두 개의 포인터를 0으로 초기화합니다. 스트림 생성: PRGA는 반복문을 통해 반복적으로 S 배열의 요소들을 업데이트하고, 스트림 바이트를 생성합니다. 이때, i와 j를 사용하여 S 배열의 요소들을 스왑하고, 스트림 바이트를 계산합니다. XOR 연산: 스트림 바이트와 평문 바이트를 XOR 연산하여 암호문을 생성합니다.
+19. RC4의 한계
+
+- 암호화의 위치는 전체 보안 아키텍처에서 암호화가 수행되는 시점을 나타냅니다. 암호화는 데이터를 안전하게 보호하기 위해 사용되며, 이를 어떻게 구현하느냐에 따라 여러 가지 방법으로 적용될 수 있습니다.
+- End-to-End Encryption (E2EE) : 데이터를 보내는 당사자에서 받는 당사자까지 전체 통신 경로상에서 데이터를 암호화하는 방식입니다. 데이터는 발신자의 장치에서 암호화되어 수신자의 장치에서만 복호화될 수 있습니다. 이 방법은 데이터의 안전한 전송을 보장하며, 중간에 데이터를 가로채거나 엿듣는 공격으로부터 보호합니다.
+- 링크 암호화(Link Encryption) : 통신 링크에서 데이터를 보호하기 위해 사용되는 보안 메커니즘입니다. 이는 통신 경로 상에서 데이터를 암호화하여 데이터가 전송되는 동안 보호합니다. 링크 암호화는 주로 전송 링크에서 데이터의 기밀성과 무결성을 보호하는 데 사용됩니다.
+
+25. as move higher less information is encrypted but it is more secure though more complex with more entities and keys. A drawback of application-layer encryption is that the number of entities to consider increases dramatically. An interesting way of viewing the alternatives is to note that as we move up the communications hierarchy, less information is encrypted but it is more secure. (OSI 계층에서)
+27. Data 색칠 부분이 email 내용을 담고 있는 듯. 
+- Link-H/ Net-H/ IP-H/ TCP-H/ Data/ Link-T 구조에서
+- App level 암호화 : link, routers, gateways에서는 Data가 암호화됨. 
+- TCP-level 암호화 : links, routers에서는 TCP-H와 Data가 암호화됨. gateways에서는 게이트웨이 통과하면서 TCP 연결은 종료되고 새로운 트랜스포트 연결이 만들어짐으로 gateway에서는 복호화됨 (data 부분도 복호화된 상태로 gateway내에 일시 저장됨).
+- Link-level 암호화 : links에서는 Net-H, IP-H, TCP-H, Data 부분이 암호화. router and gateways에서는 복호하되는 듯.
+- 애플리케이션 수준 암호화, TCP 수준 암호화 및 링크 수준 암호화에 대해 상세히 설명하겠습니다.
+1. 애플리케이션 수준 암호화:
+    - 애플리케이션 수준 암호화는 애플리케이션에서 데이터를 암호화하는 과정을 의미합니다. 이는 특정 애플리케이션에서 생성된 데이터를 암호화하여 전송하는 방법입니다.
+    - 예를 들어, 메신저 애플리케이션에서 전송되는 메시지를 암호화하여 안전하게 전송하는 것이 애플리케이션 수준 암호화의 예입니다.
+    - 애플리케이션 수준 암호화는 보통 엔드 투 엔드 암호화(End-to-End Encryption, E2EE)의 형태로 구현되며, 데이터를 생성한 사용자와 목적지 사용자 간의 통신을 안전하게 보호합니다.
+2. TCP 수준 암호화:
+    - TCP 수준 암호화는 전송 계층(TCP/IP 프로토콜 스택의 일부인 TCP 프로토콜)에서 데이터를 암호화하는 것을 의미합니다.
+    - 예를 들어, SSL(Secure Sockets Layer) 또는 TLS(Transport Layer Security) 프로토콜을 사용하여 TCP 연결을 보호하는 것이 TCP 수준 암호화의 예입니다.
+    - TCP 수준 암호화는 네트워크에서 데이터 전송의 기반이 되는 연결을 보호하여 중간자 공격과 같은 공격으로부터 데이터를 안전하게 보호합니다.
+3. 링크 수준 암호화:
+    - 링크 수준 암호화는 네트워크 계층에서 데이터를 암호화하는 것을 의미합니다. 주로 네트워크 장비 간의 통신을 보호하기 위해 사용됩니다.
+    - 이러한 암호화는 주로 네트워크 장비 간의 연결이나 데이터 전송 경로를 통해 이동하는 데이터를 보호합니다.
+    - 예를 들어, VPN(Virtual Private Network) 연결에서 사용되는 링크 수준 암호화는 네트워크 장비 간의 연결을 안전하게 보호하고 외부에서의 무단 접근을 방지합니다.
+- 따라서 애플리케이션 수준 암호화는 애플리케이션에서 데이터를 보호하고, TCP 수준 암호화는 전송 계층에서 데이터를 보호하며, 링크 수준 암호화는 네트워크 장비 간의 통신을 보호합니다. 이러한 다양한 수준의 암호화는 네트워크 보안을 향상시키는 데 중요한 역할을 합니다.
+28. obscure : 모호하게 하다. Tweak : 비틀다, 수정하다
+33. [AES-XTS Block Cipher Mode가 킹스톤의 최고급 암호화 USB 플래시 드라이브에 사용됩니다 - Kingston Technology](https://www.kingston.com/kr/blog/data-security/xts-encryption#:~:text=AES%2DXTS%EB%8A%94%20Kingston%20IronKey,%ED%9C%B4%EB%8C%80%EC%84%B1%EC%9D%84%20%EC%A0%9C%EA%B3%B5%ED%95%A9%EB%8B%88%EB%8B%A4.)
+- XTS-AES 모드는 데이터를 저장에 특화된 운용 모드다.
+- 같은 데이터라도 데이터가 저장되어 있는 위치에 따라 암호문이 달라진다는 특징을 가지고 있다.
+- 또한 블록 암호에 사용되는 모드임에도 평문의 크기가 암호 알고리즘의 블록 크기와 맞아 떨어지지 않더라도 암호문의 크기가 평문보다 커지지 않는다는 특징을 가지고 있다.
+- XTS-AES 모드는 총 두개의 키를 사용한다.
+- [06. 블록 암호 운용방식(Block Ciph.. : 네이버블로그 (naver.com)](https://blog.naver.com/ilikebigmac/221672733796) 매우 좋음
+- XTS-AES(영어로는 XEX-based Tweaked CodeBook Mode with CipherText Stealing - Advanced Encryption Standard)에서의 "a^j"는 tweak 값을 나타냅니다. 이것은 암호문에 더해지는 값으로, 각 블록에 대한 tweak 값을 생성하는 데 사용됩니다.
+- XTS-AES에서 tweak 값은 각 블록의 위치를 나타내는 역할을 합니다. tweak 값은 두 부분으로 나뉘어집니다: "tweakable block index"와 "tweak value within the block"입니다. "tweakable block index"는 블록의 위치를 지정하는 값이고, "tweak value within the block"는 블록 내에서 tweak 값을 지정하는 값입니다.
+- "a^j"에서 "a"는 tweakable block index를 나타내며, "j"는 tweak value within the block를 나타냅니다. 이 두 값은 서로 다른 암호문을 생성하기 위해 각 블록에 적용되는 tweak 값으로 사용됩니다.
+- 따라서 "a^j"를 AES 암호화한 값과의 연산을 통해 T를 만들어내는 것은 XTS-AES에서 각 블록에 대한 tweak 값을 생성하는 과정을 의미합니다. 이러한 tweak 값을 사용하여 각 블록이 암호화되고, 최종적으로 암호문이 생성됩니다. tweak 값은 각 블록의 위치에 따라 다르며, 이를 통해 XTS-AES는 암호문의 안전성을 보장합니다.
+
+==Random Number Generator==
+- C라이브러리의 랜덤은 선형, 합동, 제너레이터의 특성을 가짐. X_n+1 = (aXn + b) mod N. 시작 시점에서 주기를 갖는데 tn과 tn+1간 상관 관계는 없게한다. 근데 주기를 알면 예측이 되는데 이 주기를 seed로 TRNG(true random number generator)로 대체한다. 
+14. CSPRNG는 주기가 매우 크다. 
+15. BBS : n과 s가 서로소가 되는 s를 선정. n은 prime number가 아니니 s를 잘 선정되어야함. p, q가 3, 7이면 s는 2로 잡음. BI는 0 or 1일 수 밖에 없음 마지막에 Xi mod 2라서. 그래서 이 말은 맨 하위의 한 비트를 선택한다는 뜻. 그리고 다시 식에 따라 제곱함. 즉 섞고 한 비트 빼내고 섞고 하위 한 비트 빼냄. n과 s가 서로소여야 하는 이유는? (그룹의 특성과 관련있음). p,q가 mod 4해서 3이나오는 상에서 엘리먼트를 스퀘어하면 비트상 0으로 만 채워진 비트가 안 나온다는 특성을 찾아낸거라 그렇게 씀. 어떤 s를 제곱하면 모든 비트가 0으로 되어버리는 상태를 방지하기 위해 찾아낸거임. *시험 나 올 수 있음*
+- BBS 생성기의 시작값 s (seed)는 다음 두 가지 조건을 만족해야 합니다:
+1. s는 n과 서로소이어야 합니다 (즉, gcd(𝑠,𝑛)=1gcd(s,n)=1).
+2. s는 n에 대한 제곱잉여(square residue)여야 합니다.
+- 특히, s와 n이 서로소 조건은 다음과 같은 이유로 중요합니다:
+- **주기성과 출력의 예측 불가능성**: 𝑠s와 𝑛n이 서로소일 경우, 𝑠s의 제곱근들이 modulo 𝑛n 하에서 전체 가능한 값들을 탐색할 수 있는 충분한 주기를 갖게 됩니다. 이는 생성기가 가능한 모든 상태를 효과적으로 탐색하고, 결과적으로 예측하기 어려운 난수 시퀀스를 생성할 수 있도록 합니다.
+- **수학적 특성 유지**: 𝑠와 n이 서로소가 아니라면, 이는 𝑠가 p나 q 중 하나를 약수로 가짐을 의미할 수 있으며, 이 경우 𝑠의 제곱이 modulo 𝑛n에서 특정 패턴을 띠거나 예측 가능해질 수 있습니다. 이러한 상황은 생성기의 안전성을 약화시키고 암호학적으로 안전하지 않은 난수를 생성할 수 있습니다.
+- 따라서 𝑠s와 𝑛n이 서로소 관계를 유지하는 것은 암호학적으로 강력하고 예측 불가능한 난수를 생성하기 위한 필수적인 조건입니다. 이를 통해 BBS 생성기는 보다 안전하게 난수를 생성할 수 있으며, 이는 다양한 암호학적 애플리케이션에서 중요한 역할을 합니다.
+- Group과 연관된 이유 - 결론적으로, s와 n이 서로소인 조건은 s가 (𝑍/𝑛𝑍)∗(Z/nZ)∗ 군에서 원활하게 기능하도록 보장하며, 이를 통해 BBS 생성기의 난수가 군의 구조적 특성을 활용하여 효율적이고 안전한 난수 생성이 가능하게 합니다. 이러한 군의 구조는 난수 생성의 예측 불가능성과 안정성을 기술적으로 지원하는 핵심 요소입니다.
+17. 암호알고리즘을 써서 랜덤제너레이터를 구현함. 그렇기에 키를 써야함. counter 방식이다 (초기값 설정 후 계속 increment시킴 -> 난수 블럭들이 튀어나옴). 키의 역할은 선형성의 특성을 가지는 TRNG와 비교해 보면, 첫 시드를 결정하는거다 즉 첫 시점을 결정함. 카룰 얼 확률은 1/2^128이므로 시작지점을 알 확률이 없다. 
+18. DES에 대해 수도랜덤넘버제너레이터 만듦.
+19. EDE : 트리플 DES임. 이걸 3가지 사용함. DT : 현재 날짜와 시간. 키는 두개(트리플DES니까). 
+20. 1 다음 1나올 확률이 0.5임. 
+21. 불확실성이 좋다 = 엔트로피가 좋다.
+23. 비트들이 1이나 0으로 한쪽으로 쏠리면(편향), 비트를 생성하지 않도록 만듦. 
+
+==Number Theory==
+8. n이 소수가 아닌 합성수라면 ab로 표현 가능. a,b 둘 다가 루트 n보다 클 순 없음. 그래서 루트n까지만 체크하면 됨.
+9. a와 p가 서로소가 아니면 0으로 absorbing 되는게 있어서 저 조건 있어야함.  j와 p가 서로 다른 수 인데 a를 곱해서 같을 순 없음. 
+
+----
+
+35. prime number  판별할때 1나오기 직전에 항상 -1이 나옴. -1 안나오고 바로 1나오면 prime number 아님. 
+- fermat liar는 적당히 넘어감.
+----
+
+50. 2와 5 처럼 relative prime 되어야 함. 큰도메인(10)에서 작은 도메인(mod2 와 mod5)에서의 연산으로 바꿈.
+51. m1~mn은 서로 모두 서로수. 즉 m은 소수의 곱으로 표현됨.
+52. M1은 m2 * m3 이니. m1을 절대 포함하지 않으니 나누어 떨어지지 않음. 그래서 x를 mod m1하면 b1이 나옴. 
+53. 큰 공간 상의 연산 -> 작은 공간 상의 연산으로 바꾸는 의미가 있음.
+54. ~58 구하는 방법은 나중에 구함
+56. 무한개 공간 -> 유한개 공간인 mod P로 바꿈. mod P도 field가 되니. p가 11일 때 어떤 g = 5에 대해 이를 x 승 했을 때 3이 나오는 g^x =  3 mod P를 만족하는 x는 무한개임. 
+57. 뒤에 다 넘어감.
+
+==RSA==
+3. DES, AES 같은 대칭키는 single key이다. A와 B가 통신 하기 위한 key가 존재해야하함. c,d,e,f와 통신하려면 그 만큼 많은 key가 불필요하게 요구됨. -> 새로운 암호체게 나옴.
+4. 공개키 하나와 private key하나 가짐. 
+5. A와 B가 통신할때 A는 private A를 갖고 B는 public A를 갖고 있으므로 비대칭이다. B는 A의 공개키로 암호화 시켜서 메세지 전달하면 A는 private key로 이 메세지를 복호화 할 수 있음. sign signature : 서명값을 생성할때 private key를 사용함. *중요*
+7. 공개키 e와 비공개키 d를 곱하면 1나옴. 즉 e와 d는 역원 관계임. e * d = 1 (mod 파이 of n). n = p x q. 파이(n) = (p-1) x (q-1). 
+10. encryption/decrpytion 특성은 너무 느려서 잘 안씀. 
+11. 넘어감.
+12. one way function 예로는 hash가 있음. Trapdoor만 알면 one way이지만 뒤로 가는 계산도 쉽게 되는게 trapdoor OWF임. 
+13. 이때 p, q는 소수. p x q -> n은 쉽지만 n으로 p x q를 찾아내는건 어렵. one way function 특성임. 밑에 식 : x->y계산은 쉬우나 그 반대는 어려운데 y에 대해 어떤 k를 제곱한 정보를 안다면 그 반대로의 계산도 쉬워짐. 이때 k는 k x k프라임 = 1을 만족할때 k프라임을 trapdoor라 함. 맨마지막줄은 결국 RSA의 원리와 동일함. 
+16. private key : 서명생성, public key : 다른 사람이 이 공개키로 암호화 가능. *이 두 역할 기억*
+17. 디지털 서명의 생성과, 검증의 두 가지 역할을 함.
+18. public key certificate ; 인증서. 권위 가진 개인이나 기관이 서명을 해줌 (서명 생성). 즉 공개키를 인증해즘 (이 공개키가 A의 공개키가 맞다는걸 제 3자가 인증해줌). 이떄 권한있는 기관의 비밀키로 인증을 해줌. 
+- 파이(n) : 0~n-1 중 n과 서로수. 만약 n이 두 소수 pxq인걸 알면 (p-1)x(q-1) 개 임을 바로 알 수 있음. 
+22. plaintext를 e승하고 모듈러 n 상에 존재. p의 e승의 d승은 p가 된다는건 e x d = 1임. rsa를 생성하면 ed = 1이 되도록 셋팅해둔거임 (오른쪽 윗 그림). e는 공개되지만 d는 private임. d는 e의 역원이라 d를 구할 수 있을 것 같지만 우리는 파이(n)이 뭔지 모르기에 어떤 공간에서 ed = 1이 되는지 모르니 e를 공개해도 노상관. (단 p와 q를 알면 굉장히 쉬워지긴 함 그래서 p, q를 공개하지 않고 복호화 측만 비밀리에 빠르게 계산가능). 즉  키 생성자 입장에서 소수인 p 와 q를 선택. pxq해서 n이란 공간 생성. 파이(n)와 d는 공개 안함. e는 공개 함. n을 알아도 파이(n)을 모르기에 외부공격자는 n이 어떤 pq로 구성된지 모르니 공격 불가. Alice는 bob이 공개한 e를 가지고 n 공간 상에서 P^e mod n 해서 암호화 시킨 메세지 전달. 
+25. M^e에 ^d 하면 M을 바로 구할 수 있음 복호화 입장에서. 그래서 ed = 1이 유용한거임. 
+26. ed =  파이(n) + 1을 파이(n)에 대해 모듈러 하면 ed = 1 나옴. 
+28. 이때 e는 파이(n)과 서로소인걸 선택하긴 함.  
+30. 30, 32pge *시험*. e^-1 mod 160으로 d를 구함. 
+33. 넘어감. 
+35. 7^4로 만든는 이유는 4는 2^2로 표현가능해서 (2이 제곱승으로). 7^4 x 7^1 = 4+1 = 2^2 + 2^ 0임. 7^4는 7^2^2로 대체 가능. 즉 스퀘어링으로 빠르게 계산할 수 있도록 만들고 나머지 부분을 계산하는 방식인 듯. 
+36. f x f는 squaring. f x a 는 multiplicative. 무조건 squaring을 진행하고 비트가 1이면 multiplicative를 한 번 더 함 (비트 수 만큼 스캔함). 표 대로 쭉 하면 7^560은 1이 나옴.  
+37. 53을 binary로 만들면 110101. 
+38. e를 선정할 때 1이 적은 즉 0이 많은 비트를 쓰는게 계산이 더 간편해짐(곱이 없으니). 65537은 비트로 100... 001로 표현되니 간편하다. 
+39. d 계산을 복호화입장에서 빨리하려면, Chineses remainder thm 사용. 
+43. n이 2048비트면 d도 2048 비트임. (예를 들어 3bit x 3bit하면 최대 6bit임). n = p x q에서 n이 2048이면 p와 q는 1024가 된다. 즉 CRT domain으로 넘어가면 2048이 1024로 줄어드는 이점 있음. 이때 xp, xq의 p,q는 비밀키이다. 즉 암호문 c를 mod p, mod q해서 cp, cq로 만들어서 처리함. 이런식으로 domain transform 하는 것이 보안성을 높일 수 있음.
+48. ~넘어감.  
+52. sqauring, multiplication 계산을 할 때 오실로스코프로 분석해보면 전력차가 발생함을 확인함. *중요*. side channel (=side effect). 대안으로 1과 0 모두 s, m 둘 다 발생하게 만들고 필요한 연산만 취함. 
+54. 메세지를 특정길이에 맞추기 위해 000으로 패딩함. r이란 randomly generated number을 거기에 갖다 붙임 (+ 해시, xor 두 번). 즉 OAEP는 뭔가를 이렇게 변환 시켜서 x와 r로 만든 후 거기서 RSA를 실시하는 것임. 난수를 집어넣어서 새로운 message form을 만들어 내는 의의를 가짐 (보안성 높임). 
+55. 넘어감.
+
+==Key Management==
+6. ~넘어감. A와 B가 공개키를 막 뿌리는 방법. 
+8. 서버가 관리하는 방법
+10. **중요**. 신뢰할 수 있는 기관 authority를 두고, A가 기관에게 믿을 수 있는 b의 공개키를 요구 함(1번).  그럼 2번 처럼 해당 요청에 대한 b의 public key를 주는데 자신의 private key로 encryption함. 그러면 A는 authority의 공개키로 이걸 decryption해서 PU_b를 얻음. 3번은 IDa의미는 나는 a라는 id를 가진다는 뜻, N1은 랜덤넘버임(nonce). 이걸 b의 public key로 암호화 해서 b에게 자신의 신원을 알려줌. 그럼 b는 IDa와 N1을 갖고 있는 상태에서 a와 통신하기 위해 authority한테 A의 공개키를 요청함. 기관과 B의 통신은 이전과 동일함. 그렇게 PUa를 얻어서 6번에 N1값과 추가로 N2값을 붙여서 PUa로 암호화 해서 A한테 전달. 그러면 A는 자기가 보냈던 N1을 통해 얘가 B가 맞구나 함. 이제 B가 보낸 N2를 B에게 PUb로 암호화 해서 보냄. 이렇게 A가 B를 인증하는 과정, B가 A를 인증하는 과정, A가 B의 공개키를 안전하게 받는 과정, B가 A의 공개키를 안전하게 받는 과정이 있음. 공격자는 authority를 공격해서 부하가 오게하면(무한 요청) 모든게 스탑됨. 
+11. 보틀넥 문제점.
+13. 공개키를 인증해주기 위해 서명을 이용. A가 기관에게 공개키를 주고 인증서를 발급받음(C_A). 이떄 인증서에 기관의 서명(PR_aut)과 발급시간과 A의 식별자 ID 그리고 A의 public key를 줌.  C_A와 C_B는 서명받은 public key임. 즉 인증서는 믿을 수 있는 공개키임. 이 방법으로 미리 인증을 해줘서 계속 이걸로 사용할 수 있다는게 차이인듯 + 서명 여부도. (인증서는 한 번만 발급받으면 몇 개월 기간동안 계속 사용할 수 있다는 점이 이전 방법과 차이)
+14. 넘어감
+15. 1번: A가 B에게 공개키 줌. 2번 : 공개키를 기반으로 암호화해서 전달. 시크릿키를 분베.
+16. A와 B 통신 가운데에 E가 가로채서 A->E인데 E가 B한테 E의 공개키를 줌. 그럼 B는 A인줄알게 됨. E는 자신의 공개키로 복호화하면 Ks(secret key)를 얻음. 즉 B는 ks를 A한테 줬다 생각했지만 E한테 준거고. E는 A를 속이기 위헤 ks를 보냄. 그렇게 되면 A, E, B 모두 ks를 갖게 됨. 그래서 단순히 secret key를 주고 받는건 보안이 취약함을 알 수 있음. (https 사용하면 어느정도 막을 수 있음)
+17. secret key를 안전하게 배분하는 방법. ks가 노출되지 않도록 기밀성 유지해야함. 1번에 자신의 신원과 난수 N1을 b의 공개키로 암호화해서 보냄. B는 N1과 N2를 같이 보냄. A는 B를 확실히 확인하게 되고(1,2번) N2를 B한테 돌려줌(3번). 그러면 3번에서 B는 A 신원을 인증할 수 있게됨. 그럼 이제 4번에서 A가 private key로 서명한 secret key ks를 B의 공개키로 암호화 한걸 보냄. 그럼 B는 자신의 private key로 복호화해서 ks를 확인할 수 있게됨. 
+19. 넘어감
+26. ~넘어감. A와 B 간 비밀키를 분배하는 과정. A는 XA라는 mod q 공간 상에 존재하는 난수를 생성. YA는 공개정보임. B는 이 YA에 XB를 지수승함. 반대로 B가 만든 YB를 A는 YB^XA mod q함. A와 B 간의 K는 같은 값이됨. k = a^XAXB == a^XBXA. 즉 이게 원격으로 공유한 비밀 정보가 된다. 공격자 입장에선 XB승을 몇 번 한지 모르니 YB를 탈취해도 정보를 얻을 수 없다 (DLP). 기본 연산이 곱셈 -> 지수승표현. 기본 연산이 덧셈이면 곱셈. 비밀 정보를 몇 번 곱했는지가 a에 XA승으로 표현함.  
+27. *시험나옴* ECC와 계산 방법 다름.  
+30. ~넘어감. XA라는 secret key를 선정. 
+31. XA를 몇번 했는지는 안 알려주고 yA만 알려줌. B는 A로 부타 빋은 yA에 k승 한걸 대문자 K로 잡음. B는 A에게 메세지로서 C1, C2를 보냄. A는 복호화 할 때 C2에 K 인버스 시키면 M 나옴. 즉 KM에 K^-1 곱하면 M나옴. 
+
+==ECC==
+7. RSA 3072비트인게 ECC에서는 256비트임으로 장점이 있다. 작고 강력한 암호키. 
+10. ~넘어감. yA, a, 공간이 알려져있을 때 XA를 구하는게 DLP이다. 
+14.  a1~6을 변형시켜서 타원 곡선을 만듦.   
+17. 저 식이 0이 되면 촉점이 생김. 그러면 암호학적으로 못쓰게됨. 
+30. 23처럼 소수를 써야함. *중요*
+
+
+
+**chapter 1, 2**
+- eavesdropping(confidentiality - DES, RSA로 방어), modification(integrity - DSA, MAC로 방어), impersonation(authentication - DES, MAC으로 방어)
+- shift ciphers : 공백없애고 각 문자를 쉬프팅(encryption). key는 26(알파벳 개수). 키는 shifting 횟수가 됨
+- monoalphabetic substitution : 한 글자씩 대체. 26! 경우의 수. 언어의 특성 고려해야 함.
+- playfair cipher : 키워드 두고 알파벳을 순차적으로 5x5 매트릭스에 넣고 짝 지어 바꾸고 같은  row이면 오른쪽 쉬프트. 같은 column이면 밑으로 쉬프트. 대각이면 수선 그어서. pair가 중복된 문자면 가운데 x 같은거 삽입. 'playfair'의 경우 pl-> pq, ay -> bn, fa -> i/jo, ir -> ka 인듯. 26 * 26의 security level 갖는다 (두 글자 짝지어서 바꾸니까).
+- polyalphabetic cipher (vigenere) : 비지나리 테이블을 이용해서 치환. 칼럼이 key이고 row가 plaintext가 됨. 
+- 여기까진 substitute 앞으론 permutation(transposition) 전치의 방법
+- rail fence cipher : 위아래 대각 엇갈리게 작성하고 위와 아래를 concat한다. 
+- row transposition cipher : 특정 row만큼 채워서 글을 쓰고 키 값에 맞게 column으로 출력
+- rotor machines : 첫 로터를 사용하고 나면 한 칸씩 내려버림. 한 로터 내에서는 같은 번호끼리 이어지고, 여러 로터들은 바로 이웃하게 전기적으로 연결됨. 
+
+**chapter 3**
+- block cipher : 덩어리 단위로 한번에 처리 후 암/복호화
+- Stream cipher : 암/복호화와 동시에 순차적으로 처리
+- stream cipher는 random하고 송수신자 간 reproducible 해야 함. synchronous s.c는 key(generator)에 의존, asynchronous s.c는 ciphertext(출력값)에도 의존.
+- (*시험*) 입력에 관계없이 암호학의 복잡성을 유지시켜주기에 xor 과 같은 기능인 모듈러 2 사용 (데이터의 무작위성). 또한 암호화된 데이터를 복호화 하기에도 간단하고 비트 연산이라 빠른 처리 가능.
+- LFSR : x_m+3 = x_m+1 XOR x_m 공식. x_m+1과 x_m의 xor이 x_m+2가 되고 x_m+1과 x_m은 하나씩 쉬프트 되어서 받는다 (x_m+2와 x_m+1의 값 받음). key length는 n이 sequence length는 2^n - 1이하. sequence length 길이 만큼 generated sequence가 반복됨. recurrence가 선형적이라 안전치 못함 -> 비선형적인 특성을 갖도록 one time pad로 만듦 (plaintext가 랜덤 키와 결합한 방식). 
+- 그래서 비선형 요소를 붙인게 A5/1 : Majority(c1, c2, c1)에서 (0,0,1)이면 r1, r2만 쉬프트, r3는 hold. 
+- Trivium : A5/1에 AND 까지 붙임. 
+- block cipher는 subsitution(confusion 혼돈; sbox - 외부키로 구현)와 permutation(diffusion 확산; pbox - 내부키로 구현)로 구성. 그 예로
+- Feistel cipher : 평문을 L0과 R0로(32비트 씩) 나누고 R0를 F(s+pbox) 통해 변형된 값 xor L0 한게 다음 R임. L1은 R0가 됨. 즉 L_i = R_(i-1) 이고 R_i = L_(i-1) + f( R_(i-1), K_(i-1) ). 복호는 R과 L 바꿔주면됨. 
+- (*시험*) DES : 동일한 키(56비트)를 이용해서 플레인 x (64비트)를 cipher Y(64)로 암호화하고 복호화한다. -> 대칭 키 시스템이다.
+- ip는 초기 규칙대로 섞어 줌. F함수는 각 round마다 들어가 있고 key scehduler가 56비트 키를 받아서 48비트 서브 키들을 생성. 
+- 각 round는 Feistel 구조와 동일. R0 (32bits)를 48비트 외부 키를 갖는 function f에 넣어서 출력 값을 L0 (32bits)와 xor 한 게 R1 그리고 기존 R0가 L1이 됨. 
+- F 함수 내부는 8개의 작은 sbox 그리고 맨 밑 큰 pbox 있음. R0로 32비트 받으면 48비트로 expansion 한걸 key(48비트)와 xor 해서 sbox들에 6비트 씩 주면 sbox는 4비트로 치환해서 P 박스에 넣음. 
+- 37p, 62p 그림 시험 나올 듯. 
+- M7 -> IP에서 7을 찾고 -> IP inv 에서 7번 째 위치의 값인 64로 x64를 찾음. 
+- X64 -> IP inv에서 64를 찾고 -> IP 에서 64번 째 위치의 값인 7로 m7을 구함.
+- DES도 브루투포스 방법으로 56비트 키를 찾아버림 -> 대안 필요.
+- output feedback은 cipher가 아니라 암호문의 출력이 피드백 됨. *시험* :  cfb는 plain text가 도착하는게 동기화 되어야 함. 즉 p2가 안 오면 c1이 있어도 기다려야 함. ofb는 그런 동기화가 필요 없음. 
+
+**chatper4**
+- group : closure, associative, identity, inverses, 
+- abelian : group + commutative(ab = ba)
+- subgroup : group G에 속한 subset H에 대해 , 만약 H가 G의 binary operation을 그대로 가질때 subgroup이라 함.
+- Z ㄷ= Q ㄷ= R ㄷ= C
+- H = <Z10, +>는 G = <Z12, +>의 서브그룹 아니다. 정의된 operation이 전자는 modulo 10, 후자는 modulo 12임으로 다르기 떄문.
+- - a^0 = e (identity element)
+- Identity : ae = ea = a 만족하는 e 존재
+- inverse : a * a^-1 = e 만족하는 a 인버스
+- Z10* 은 0 제외 10과 서로수의 집합.
+- cyclic group : 그룹 G를 generate하는 element a가 존재(< a >)하는 경우 그룹 G를 사이클릭이다고 한다. 그런 a를 generator라고 함
+- cyclic group은 항상 abelian이다.
+- ring : 한 연산자에 abelian group, 두번째 연산에 대해서 특정 조건 만족해야 ring임(closure, associative, distributive).
+- Integral domain : 두 번째 연산자에 대해 no zero divisor 임.
+- no zero divisor는 ab = 0이면 a나 b중 0이 있어야 한다는 뜻.
+- Field : 두번째 연산에 inverse까지 존재
+- b|a는 a를 b로 나누었을때 나누어 떨어짐. b는 a의 divisor이다.
+- a 합동(=) b mod n 이다. if n|(a-b)
+- if (a+b) 합동 (a+c) mod n, then b 합동 c mod n. (첫번째 연산에 대해)
+- 두번째 연산인 multiplication에 대해 ab 합동 ac mod n 이면 b 합동 c mod n인데 이건 a가 n에 대해 소수일때만 가능하다. 
+- 즉 Zn에서 n이 소수이면 인버스가 됨으로 ring도 되고 field도 됨. 그래서 b와 c가 같음.
+- gcd(a,b) = gcd(b, a mod b)
+- GF(p)에서 p는 prime이고 이는 Zp와 동일함
+- gcd(27, 21) = gcd(21, 6) = gcd(6, 3) = gcd(3, 0) = 3
+- Z2는 계수가 0 or 1이라는 뜻. 폴리노미얼 계수 더해서 1+1=2 mod z2이면 0이되어서 사라짐. 뺄셈도 -1이라는 뜻은 z2상에서 +1과 동일한 의미임. 그래서 뺴면 없어짐. 
+- GF(2^n)은 게수는 2는 맞음. 2^3일때 3차로 나누면 최대 차수는 2차임. ax2+bx+c에서 a,b,c는 0or1만 되니까 총 8가지 케이스나옴 그래서 2^3임. 
+- GF(2)의 연산은 xor과 동일함 그래서 x6+x4+x2+x+1은 01010111이고 이걸 x7+x+1인 10000011과 더하면 비트를 xor 해버리면 11010100인 D4가 나옴.
+- minimal polynomial = irreducable polynomial이며 GF(2^8)에서 그 m(x) = x8+x4+x3+x+1이다.
+
+
+**6장**
+- Stream Cipher : 암호화할 데이터의 비트나 바이트 스트림에 난수 stream key를 XOR 연산하는 방식으로 작동하는 암호화 방식. stream key를 재사용해선 안된다. non linear 불리안함수 사용.
+- *RC4* : variable 키사이즈, 바이트 기반 stream cipher, 키로 8비트 값으로 랜덤 permutation함. S는 0~255를 채우고, T에는 key를 반복적으로 256만큼 채운다. i는 0~255까지 증가하고 j는 j+S(i)+T(i) mod 256으로 업데이트 됨. 그 후 S(i)와 S(j)는 스왑된다. 이 과정으로 S를 섞는다. 
+- 그 후 while문에서 i = i + 1, j = j + S(i) mod 256으로 셋팅 후 S(i)와 S(j)를 스왑함. t = S(i)+S(j) mod 256; k = S(t)이 메세지 M과 XOR 되어서 Cipher text를 구성함 .
+- RC4는 키를 재사용하지 않고 그 결과는 매우 non-linear하다. 
+- *Link Encryption* : 통신 링크에서 데이터를 보호하기 위해 사용되는 보안 메커니즘입니다. 이는 통신 경로 상에서 데이터를 암호화하여 데이터가 전송되는 동안 보호합니다. 링크 암호화는 주로 전송 링크에서 데이터의 기밀성과 무결성을 보호하는 데 사용됩니다. 암호화는 모든 링크마다 독립적으로 발생한다 따라서 다음 링크로 넘어갈때 traffic 복호화도 필수적이다. 많은 장비를 필요로 하지만 paired key만 사용하면 된다. Header는 암호화하지 않는다(따라서 네트워크가 제대로 길을 갈 수 있음). 데이터는 보호되지만 traffic flow는 보호 받지 못함.
+- *End-to-End Encryption* : 데이터를 보내는 당사자에서 받는 당사자까지 전체 통신 경로상에서 데이터를 암호화하는 방식입니다. 데이터는 발신자의 장치에서 암호화되어 수신자의 장치에서만 복호화될 수 있습니다. 이 방법은 데이터의 안전한 전송을 보장하며, 중간에 데이터를 가로채거나 엿듣는 공격으로부터 보호합니다. need devices at each end with shared keys. 전체 경로에서 데이터를 보호하고 authentication을 제공함. 모니터링을 통해서 traffic flow를 보호한다.
+- as move higher less information is encrypted but it is more secure though more complex with more entities and keys. A drawback(결점) of application-layer encryption is that the number of entities to consider increases dramatically. An interesting way of viewing the alternatives is to note that as we move up the communications hierarchy, less information is encrypted but it is more secure. (OSI 계층에서)
+- Link encryption : L1 or L2 (physical, data link). End-to-end encryption: L3, 4, 6, 7 (NW, transport, presentation, application). L5인 session은 아님.
+- 26p 그림, Link-H/ Net-H/ IP-H/ TCP-H/ Data/ Link-T 구조에서
+    - **Application Level Encryption**:
+    - 암호화 대상: 데이터
+    - 암호화 위치: 애플리케이션
+    - 라우터/게이트웨이: 암호화된 데이터 통과
+    - **TCP Level Encryption**:
+    - 암호화 대상: TCP 헤더 + 데이터
+    - 암호화 위치: TCP 계층
+    - 라우터: 암호화된 상태로 통과
+    - 게이트웨이: 복호화 후 새로운 연결 생성 시 다시 암호화
+    - **Link Level Encryption**:
+    - 암호화 대상: 네트워크 헤더 + IP 헤더 + TCP 헤더 + 데이터
+    - 암호화 위치: 링크 계층
+    - 라우터/게이트웨이: 복호화 후 재암호화
+- link encryption obscures network-layer header details  but overall traffic volumes in networks and at end-points is still visible
+- *Tweakable block ciphers* : 두 개의 블록 내용이 같고 K값이 같더라도 Tweak이 다르면 결과가 달라지므로 무작위성을 띄는 장점이 있다.
+- *XTS-AES* : 같은 데이터라도 데이터가 저장되어 있는 위치에 따라 암호문이 달라진다는 특징을 가지고 있다. 예를 들어 DB에 동일한 데이터가 같은 키로 암호화되더라도 저장 위치(tweak) 정보가 사용되어 다른 암호문으로 저장됨. tweakable block ciper 컨셉임. Tweak need not be kept secret (Purpose is to provide 다양성). 
+- AES를 두 번 적용. chaining없기에 CTR처럼 병렬처리가능. CTR과 달리 nonce(parameter i)를 가짐(parameter j에 해당하는 counter도 역시 가짐). a^j는 tweak값. modular multiplication(X기호)를 통해서 서로 다른 블록이 같은 값을 가지고 있더라도 각 블록의 번호와 소속 Sector에 따라 Tweak값도 바뀌므로 동일한 ouput은 나오지 않는다. XTS-AES의 특징은 맨 마지막에 자투리 처리방식이다. 맨 마지막에는 Cm이 블록 사이즈와 맞지 않는데도 암-복호화 처리가 가능하다는 것이다. 실제 key와 tweak이 필요함으로 키를 두 개 사용한다고 봄.
+
+**7장**
+- 난수 : 랜덤한 연속적인 수, 의사난수(Pseudo) : 컴퓨터에 의해 만들어지는 난수.
+- 난수의 임의성 : 균일성(0, 1 출현빈도 거의 동일해야함), 독립성(수열의 어느 부분 수열도 다른 부분 수열로부터 추정될 수 없음). 일관성(생성기의 동작은 초기값 전반에 대해 일관돼야 함). 
+- 난수의 비예측성 : 수열의 잇따른 다음 수의 순서에 대해 예측 불가능해야함. *임균독일비*
+- *TRNG* : 실제 랜덤한 소스를 입력으로 사용(마우스 움직임 등). 비 결정적 소스 사용. 불확실성이 좋다 = 엔트로피가 좋다. 비트들이 1이나 0으로 한쪽으로 쏠리면(편향), 비트를 생성하지 않도록 만듦. 
+- *PRF* : PRNG + 고정된 길이의 의사 난수 비틀열을 사용
+- *PRNG* : 고정값 seed를 입력받아 결정적 알고리즘을 사용하여 출력 비트열 생성. 제한 없는 비트열 생성하는데 사용. 
+- 요구사항은 Seed를 알지못하는 공격자가 의사 난수열을 결정할 수가 없어야 함. seed와 알고리즘을 알고 있는 공격자는 비트열 재생성 가능. 난수의 임의성, 비예측성을 요구함. 시드는 예측 불가능해야하고 난수 or 의사난수여야 함(TRNG에 의해 시드 생성). 
+- C라이브러리의 랜덤은 선형합동생성기의 특성을 가짐. 시작 시점에서 주기를 갖는데 tn과 tn+1간 상관 관계는 없게한다. 근데 주기를 알면 예측이 되는데 이 주기를 seed로 TRNG로 대체한다. 
+- *선형합동생성기* :  X_n+1 = (aXn + c) mod m. 선형 합동 알고리즘의 사용 여부를 안다면, 생성된 수의 순서만으로도 파라미터를 알아낼 수 있음. 내부 시스템 클럭 사용 해 해결 (매번 (현재의 클럭 값 mod m) 을 새로운 seed로 하여 생성, 현재 클럭 값을 난수에 더하여 mod m의 값을 사용). 이때 c는 X0 값임. 그래서 리니어하기에 Bad cryptographic property를 가짐
+- *CSPRNG* : PRNG + "output must be unpredictable". 주기가 매우 크다.
+- *BBS* : CSPRNG 초기 사례. 느리다. n이 주어졌을 때, n(pxq)의 두 소수 p와 q는 p = q= 3(mod4) 만족. p,q가 mod 4해서 3이나오는 상에서 엘리먼트를 스퀘어하면 비트상 0으로 만 채워진 비트가 안 나온다는 특성을 찾아낸거라 그렇게 씀. gcd(n, s) = 1 만족하는 서로소 seed s 선정(서로소가 아니면 s가 p나 q 중 하나를 약수로 가질 수 있게 되며 이는 특정 패턴을 띄어 예측 가능해질 위험있음). p, q가 3, 7이면 s는 2로 잡음. x0 = s^2 mod n이고 for문으로 섞고(xi = (xi-1)^2 mod n) 하위 한 비트 빼내고(Bi = Xi mod 2)를 반복. *시험*
+- *ANSI X9.17 PRG* : DES에 대해 의사난수생성기 만듦. EDE는 트리플 DES를 의미하며 이걸 3개 사용함. DT_i는 현재 날짜와 시간. 트리플 DES이므로 키는 두 개 사용. 
+
+**8장** (영상, 한 수업 뺌)
+- n이 소수가 아닌 합성수라면 ab로 표현 가능. a,b 둘 다가 루트 n보다 클 순 없음. 그래서 루트n까지만 체크하면 됨 (n이 합성수라면 루트 n보다 작거나 같은 소수를 가짐).
+- *Fermat Therorem* : *p는 prime, a는 p로 나누어지지 않는 양수이면 a^(p-1) = 1 mod p (a와 p는 서로소임)*. 혹은 a^p = a mod p로 사용하기도 함 (이땐 a와 p가 서로소가 아니여도 됨.    
+- 증명 : a에 1~p-1까지를 곱한 집합 X에 대해 어떠한 원소도 0이 아니다. 왜냐하면 p는 a를 divide하지 못하기 때문에. 만약 ja = ka mod p가 1 <= j < k <= p-1 상에 존재한다고 가정하면, gcd(a, p) = 1이기 때문에 a를 양변에서 제거할 수 있다. 그렇게 되면 j = k mod p가 되는데 j < k이기에 거짓이 된다. 즉 mod p로 만들어진 1~p-1 셋에 서로소인 a를 곱해서 mod 취한 것은 동일함 (element가 같고 0으로 나오는게 없으니까). 그렇기에 a x 2a ... x (p-1)a = 1 x 2 .. x( p-1) mod p 이고 이는 a^p-1 (p-1)! = (p-1)! mod p 이므로 a^p-1 = 1 mod p 가 나온다.
+- 예시 계산 16pge. 
+- Euler Totient Function : reduced set of residues(n과 서로소인 집합)의 개수임. 파이(10) = 4이다.  
+- 소수 p에 대해 파이(p) = p-1임 (The order of GF(p) is p-1). 파이(21) = 파이(3) x 파이(7)로 쪼개질 수 있고 이는 (3-1) x (7-1) = 12이다. 
+- 증명 : 저렇게 쪼갤 수 있는 이유는 파이(n=pq)는 pq-1개 전체 원소에서 p의 배수 p-1개와 q의 배수 q-1개를 빼면 (p-1) x (q-1) 형태가 나옴
+- *Euler's Theorem* : 페르마이론의 일반식인 *a^파이(n) = 1 mod n*이다. 예) a = 3, n = 10, 파이(10) = 4일때 3^4 = 81 = 1 mod 10 임. 
+- *Mersenne Primes* : M_p = 2^p - 1. 위 형태를 만족해도 모든 수가 소수가 되는건 아님 2^11 -1 = 2047 = 23 x 89. 
+- *Fermat Primes* : Fn = 2^(2^n) + 1. 이것도 모든게 소수가 되는건 아님.
+- 소수인지판단하는 방법 
+- *Naive methods* : 1 ~ 루트 n까지 나눠보기. 오래걸림. 그래서 나온게
+- *Probabilistic algorithm* : n이 소수이고 a와 n이 서로소이면 a^(n-1) = 1 mod n이라는 페르마 이론을 이용. 근데 n이 소수가 아닌 합성수라도 저 식을 만족하는 경우가 있음 그래서 확률적임. 2^(561-1) = 1 mod 561인데 561 = 33 x 17이라 소수가 아님.
+- square roots of 1 = +-1. 즉 +-1을 제곱하면 1이 됨. 
+- *Square root test* : n이 소수일때 square roots of 1 mod n = +- 1이다. 즉 n이 7이면 1~6 중 square roots of 1을 만족하는건 +1과 -1임. 1^2 = 1 mod 7. (-1)^2 = 1 mod 7. 
+- 근데 n이 composite인 8이여도 square roots of 1 mod n에 대해 +1, -1 외에도 더 있음. 3^2 = 1 mod 8. 5^2 = 1 mod 8. 
+- 즉 n이 소수이면 1~n-1 중 제곱해서 mod n 취한 결과가 1이 나오는 케이스는 +1, -1밖에 없는데 합성수이면 그 케이스가 좀 더 있을 수 있음(possibly).  
+- *Miller-Rabin test* : *n - 1 = m x 2^k*. 홀수 n에서 1을 뺀 수, 즉, n-1은 짝수이므로, 2의 배수로 표현될 수 밖에 없음. , 𝑎^(𝑛−1) = 𝑎^(𝑚∗2^𝑘) 값이 1혹은 -1이 되면, 높은 확률로 prime number로 볼 수 있음. 테스트에서 a는 랜덤하게 선택하여 수행. prime number 판별할때 1나오기 직전에 항상 -1이 나옴. -1 안나오고 바로 1나오면 prime number 아님. 처음부터 a^m = 1인건 prime number임. 
+- N이 짝수면 백프로 합성수니까 N은 홀수로 주어짐. N-1을 2의 power 형태로 표현 후 factoring 수행. N - 1 = 2^e * k. 그래서 페르마식 x^(N-1) - 1 = x^(2^e * k) - 1. 만약 n이 소수라면 factoring을 푼 식에서 적어도 하나의 factor에서는 0이 나온다 (모든 a에 대해서 +1 or -1이 나옴). 즉 초기에 1이 나오거나, 초기에 +-1이 아니어도 -1이 나중에 나오면 소수 맞음. 근데 초기값이 1도 아닌데 i 증가시켜 계산했을 때 -1도 안나오면 합성수임. 
+ - *33p ~38p 다시보기*
+ - 페르마리틀이론은 iff가 아니라서 a^(N-1) = 1modN 만족한다고 N이 무조건 소수인건 아니다. 그러나 페르마 테스트를 통과했다라고는 할 수 있다. a는 우리가 셋팅하는거니까 N이 소수일때는 통과하고 합성수일 때는 통과 못하게 하는게 목표임. 합성수를 통과시켜주는 a를 Fermat liar라고 함. 
+- a는 테스트 pass하는 경우, b는 fail하는 경우라 했을때 axb는 fail함. 그래서 적어도 pass하는 수만큼 fail하는 개수가 있게 됨. 그렇기에 pass 수 보다 fail 수가 더 많이 존재할 수 밖에 없음. 
+- *Carmichael Number* : 다음 조건을 만족하는 합성수 N
+- a ㅌ {1, ... , N-1}, a^(N-1) = 1 mod N, where gcd(a, N) = 1. 
+- 즉 모든 a에 대해 1이 되어버림. 그래서 모든 페르마테스트를 통과해버림. 굉장히 예외적인 숫자임
+- *Chinese Remainder Theorem (CRT)* : 2와 5처럼 서로수일때 큰 도메인 mod 10을 작은 도메인 mod2와 mod5에서의 연산으로 바꿈. Mi Ni ≡ 1 mod mi 을 성립하는 Ni 가 존재. x ≡ b1·M1·N1 + b2·M2·N2 + b3·M3·N3 (mod m) 이라 둠 이때 Mi = m/mi 이라 m1은 m2 * m3임. m1에 대해서 
+    - x ≡ b1·M1·N1 + b2·M2·N2 + b3·M3·N3 (mod m1) 
+    - ≡ b1·M1·N1 (mod m1) 왜냐면 M2≡0, M3≡0 (mod m1) 이므로
+    - ≡ b1 (mod m1) 왜냐면 M1N1 ≡ 1 (mod m1) 이므로
+
+**9장** (영상, 수업들음)
+- *Public key cryptography* : DES, AES 같은 대칭키는 single key임. A와 B, C, D, E가 통신하려면 그 만큼 많은 key가 불필요하게 요구됨에 반해 PKC는 public key와 private key 사용. Asymmetric임. 
+- public key는 누구나 접근해서 이 키로 메세지를 암호화 시키거나 이 키로 서명의 유효성을 검사할 수 있음
+- private key는 받는 사람만 갖고 있고 이 키로 메세지를 복호화하거나 이 키로 서명을 생성할 수 있음.
+- Encryption : C = f(k_public, P) / Decryption : P = g(K_private, C)
+- pkc 요구사항 : trapdoor one way function(TOWF)임. one way function 예로는 hash가 있음. Trapdoor만 알면 one way(OWF)이지만 뒤로 가는 계산도 쉽게 되는게 trapdoor OWF(TOWF)임. 
+- n = p x q 에서 p, q를 알면 n을 계산하긴 쉽지만 n으로 p, q를 찾아내는건 어렵. y = x^k mod n 은 TOWF이다. x, k, n으로 y 유추는 쉬우나 y, k, n으로 x를 유추하는건 어렵다 그러나 trapdoor인 k x k' = 1 mod 파이n 을 만족하는 k'을 알면 x를 구할 수 있게됨 (x = y^k' mod n).
+- Digital Signature : 서명 생성, 서명 검증의 역할
+- *RSA* : p의 e승의 d승은 p가 됨을 이용. e는 공개되지만 d는 private임. d는 e의 역원이라 d를 구할 수 있을 것 같지만 우리는 파이(n)이 뭔지 모르기에 어떤 공간에서 e d = 1 mod 파이(n)이 되는지 모르니 e를 공개해도 노상관. 단 p와 q를 알면 굉장히 쉬워지긴 함 그래서 p, q를 공개하지 않고 복호화 측만 비밀리에 빠르게 계산 가능케 함. 즉 키 생성자 입장에서 소수인 p 와 q를 선택. pxq해서 n이란 공간 생성. 파이(n)와 d는 공개 안함. e는 공개 함. n을 알아도 파이(n)을 모르기에 외부공격자는 n이 어떤 pq로 구성된지 모르니 공격 불가. e는 파이(n)과 서로소인걸 선택함. Alice는 Bob이 공개한 e를 가지고 n 공간 상에서 C = P^e mod n 해서 암호화 시킨 메세지 전달. Bob은 P = C^d mod n해서 복호화. 즉 e, n은 public key, d는 private key이며 p q도 공개되면 안된다. 파이(n) = (p-1)(q-1)로 구함.
+- *시험* p = 17, q = 11일때 n = 17 x 11 = 187. 파이(n) = (p-1)(q-1) = 160. e는 gcd(e, 160) = 1 만족하는 e = 7로 선택. d e = 1 mod 160 만족하는 d는 23임. 고로 public key PU = (e, n) = (7, 187). private key PR = d = 23.
+- 7^5 = 7^4 x 7^1 = 3 x 7 = 10 mod 11임을 이용해서 square and multiply algorithm을 사용함. 
+- a^b mod n,  where a = 7, b = 560 = 1000110000, n = 561에서 시작 f는 1이고 비트가 0이면 f를 squaring, 1이면 squaring 후 a를 multiplicative. 이걸 비트 수만큼 진행하면 최종적으로 f = 7^560 mod 561 = 1나옴. 
+- RSA의 e를 선정할 때 1이 적은 즉 0이 많은 비트를 쓰는게 계산이 더 간편해짐(추가적인 곱이 없으니). 65537은 비트로 100... 001로 표현되니 간편하다. 
+- d 계산을 복호화입장에서 빨리하려면, Chineses remainder thm 사용.  n이 2048비트면 d도 2048 비트임. (예를 들어 3bit x 3bit하면 최대 6bit임). n = p x q에서 n이 2048이면 p와 q는 1024 비트가 된다. 즉 CRT domain으로 넘어가면 2048비트가 1024비트로 줄어드는 이점 있음. 즉 암호문 c를 mod p, mod q해서 cp, cq로 만들어서 처리함. 이런식으로 domain transform 하는 것이 보안성을 높일 수 있음.
+- side channel attack : sqauring, multiplication 계산을 할 때 오실로스코프로 분석해보면 전력차가 발생함을 확인함. 대안으로 1과 0 모두 s, m 둘 다 발생하게 만들고 필요한 연산만 취함. 
+- *OAEP* : 메세지를 특정길이에 맞추기 위해 000으로 패딩함. r이라는 randomly generated number을 거기에 갖다 붙임. 그 후 해시 두 번, xor 두 번 진행하면 x와 y를 만듦. x와 y를 결합한 것에서 RSA를 실시하는 것임. 난수를 집어넣어서 새로운 message form을 만들어 내는 의의를 가짐 (보안성 높임). 동일한 메시지도 매번 다른 암호문으로 암호화됩니다
+
+**11장** (수업들음)
+- key를 배분하는 방법
+- Public Announcement : 공개키를 막 뿌림. some user could pretend to be user A and send a public key to another participant or broadcast such a public key
+- Publicly Available Director : 공개키를 공개 디렉토리에 등록하여 보관. 여전히 변조, 위조의 위험 있음.
+- *Public-Key Authority* :  a central authority maintains a dynamic directory of public keys of all participants. In addition, each participant reliably knows the public key of the authority and only the authority knows the corresponding private key. Users interact with directory to obtain any desired public key securely.
+- *동작과정* 
+    1. 신뢰할 수 있는 기관 authority를 두고, A가 기관에게 믿을 수 있는 B의 공개키를 요구함.  
+    2. 해당 요청에 대한 B의 공개키를 주는데 기관이 자신의 private key로 encryption함. 그러면 A는 기관의 공개키로 이걸 decryption해서 PU_b를 얻음. 
+    3. 얻은 B의 공개키로 B에게 보내는 정보 암호화함. 이때 IDa의미는 나는 A라는 id를 가진다는 뜻, N1은 랜덤넘버임(nonce). 
+    4. 그럼 B는 IDa와 N1을 갖고 있는 상태에서 A와 통신하기 위해 authority한테 A의 공개키를 요청함. 
+    5. 기관은 B에게 A의 공개키 전달 (당연히 이때도 기관의 비밀키로 암호화 후 B는 기관의 공개키로 복호화 함). 
+    6. 그렇게 PUa를 얻어서 N1값과 추가로 N2값을 붙여서 PUa로 암호화 해서 A한테 전달. 
+    7. A는 자기가 보냈던 N1을 통해 얘가 B가 맞구나 함. 이제 B가 보낸 N2를 B에게 PUb로 암호화 해서 보냄. 
+- 이렇게 A가 B를 인증하는 과정, B가 A를 인증하는 과정, A가 B의 공개키를 안전하게 받는 과정, B가 A의 공개키를 안전하게 받는 과정이 있음. 공격자는 authority를 공격해서 부하가 오게하면(무한 요청) 모든게 스탑됨(보틀넥). 또 기관에 의해 유지되는 공개키들은 위조에 여전히 취약함.
+- *Public-Key Certificates* : 공개키를 인증해주기 위해 서명을 이용. A가 기관에게 공개키를 주고 인증서를 발급받음(C_A). 이떄 인증서에 기관의 서명(PR_aut)과 발급시간과 A의 식별자 ID 그리고 A의 public key를 줌.  C_A와 C_B는 서명받은 public key임. 즉 인증서는 믿을 수 있는 공개키임. 이 방법으로 미리 인증을 해줘서 계속 이걸로 사용할 수 있다는게 차이인듯 + 서명 여부도. (인증서는 한 번만 발급받으면 몇 개월 기간동안 계속 사용할 수 있다는 점이 이전 방법과 차이)
+- *Simple Secret Key Distribution* : A가 PUa, PRa 쌍을 만들고 B에게 A의 공개키와 자신의 신원을 전달. B는 session key(=secret key)인 Ks 만들고 A의 공개키를 기반으로 이를 암호화해서 전달. A는 이 session key를 복호화하면 A, B 둘 다 이 키를 사용할 수 있게됨. man in the middle attack에 취약함.
+- *Man-in-the-middle Attack* :  A와 B 통신 가운데에 E가 가로채서 A->E인데 E가 B한테 E의 공개키를 줌. 그럼 B는 A인줄알게 됨. E는 자신의 공개키로 복호화하면 Ks(secret key)를 얻음. 즉 B는 ks를 A한테 줬다 생각했지만 E한테 준거고. E는 A를 속이기 위헤 ks를 보냄. 그렇게 되면 A, E, B 모두 ks를 갖게 됨. 그래서 단순히 secret key를 주고 받는건 보안이 취약함을 알 수 있음.
+- *secret key를 안전하게 배분하는 방법* : ks가 노출되지 않도록 기밀성 유지해야함. A는 자신의 신원과 난수 N1을 B의 공개키로 암호화해서 보냄. B는 N1에 N2를 추가해 A에게 보냄. A는 B를 확실히 확인하게 되고 N2를 B한테 돌려줌. 그러면 B는 A 신원을 인증할 수 있게됨. 그럼 이제 A가 private key로 서명한 secret key ks를 B의 공개키로 암호화 한걸 보냄. 그럼 B는 자신의 private key로 복호화해서 ks를 확인할 수 있게됨. 즉 A는 M = E(PUb, E(PRa, Ks)) to B를 보내고 B는 D(PUa, D(PRb, M))로 복호화해 ks를 얻음.
+- *Diffie-Hellman key exchange* : A는 XA라는 mod q 공간 상에 존재하는 난수를 생성. YA = a^Xa mod q는 공개정보임. B는 이 YA에 XB를 지수승해서 K를 구함(K = YA^XB mod q). 반대로 YB = a^XB mod q로 B가 만든 공개키 YB를 A는 K = YB^XA mod q해서 K를 구함. A와 B 간의 K는 같은 값이됨. k = a^XAXB == a^XBXA. 즉 이게 원격으로 공유한 비밀 정보가 된다. 공격자 입장에선 XB승을 몇 번 한지 모르니 YB를 탈취해도 정보를 얻을 수 없다.
+- *27p 계산 시험*. gpt 참고 [빠른 모듈로 거듭제곱법 (개념 이해하기) | 암호학이란? | Khan Academy](https://ko.khanacademy.org/computing/computer-science/cryptography/modarithmetic/a/fast-modular-exponentiation)
+
+**12장** (영상)
+- Group : closure, identity, associative, inverse
+- Abelian : group + commutative(ab = ba) 
+- Field ( + , * ) : 첫 op, 두 번째 op 모두 Abelian 이면서 두번째 op가 첫번째 op에 대해 distributive 해야함.
+- *DLP* : group elements a, b에 대해 b = a^x 만족하는 x 찾는 것을 말함. 이때 x를 a를 베이스로한 discrete log of b라함. (x = log_a(b)). 
+- *ECC* : RSA는 키가 너무 길다는 단점이 있음. 
+- Real Elliptic Curves : y2 + axy + by = x3 + cx2 + dx + e. 
+- cubic *elliptic curve* of form : *y2 = x3 + ax + b*, where x,y,a,b 는 실수
+- 이떄 4a3 + 27b2 != 0이여야함. 저 식이 0이면 촉점이 생겨 암호학적으로 무쓸모됨.
+- 타원 곡선의 점들의 집합은 group을 형성함.
+
+- 2번쨰 영상분량 다시
+
+- *Koblitz's method* : 어떤 메세지 M도 이 방식을 사용해서 타원곡선 상의 한 점으로 맵핑시키면 메세지 M을 암호화/복호화 할 수 있다.
+- Scalar Multiplication (MSB first) : Q = kP 계산. k_(n-1)은 항상 1(첫비트)이니 n-2 부터 진행함. for문에서 일단 doubling(Q=2Q;)을 하고 비트가 1이면 P를 addition한다(Q=Q+P;).
+- *예시* : 7P 계산 : 7 = (111)_ 2 이므로 7P = 2(2(P)+P) + P로 나옴(첫 1은 무시임). 6P = 2(2(P)+P). 
+- elliptic curve point P = (x,y) 는 y를 굳이 안쓰고 x좌표와 추가적인 비트만으로도 구성할 수 있음. 
+
+
+
+**13장** (영상)
+- message authentication is concerned with protecting integrity, validating identity of originator, non-repudiation of origin
+- message authentication을 위한 방법들
+- *message encrytion* : symmetric 암호화일 경우 센더와 리시버만 key를 알기에 메세지 인증으로서 역할을 할 수 있음. public key 암호화일 경우 센더가 자기의 private key를 생성한 뒤 수령인의 공개키로 암호화 시켜버리면 authentication을 유지할 수 있음. 
+- *MAC(Message authentication code)* : 메세지에 small fixed sized block인 signature를 덧붙인다. 수령자는 같은 연산을 해서 메세지가 MAC과 일치하는지 확인함. 이 과정을 통해 메세지가 도중에 변경되지 않음을 보장해줌. 
+- 센더는 MAC을 제너레이트하는 알고리즘을 사용해서 원본 메세지에 concat한다. 제너레이트할 때 key 값을 사용한다. 수신측에서는 메세지를 한번 제너레이트하고 받은 MAC값과 비교해보고 같으면 문제 없음을 안다. A와 B간 K는 같아야 됨. 
+- Encrypt then authenticate가 더 낫다. 조금만 수정이 들어가도 복호화 이전에 MAC에서 바로 필터링 될 수 있기 때문이다. 암호문을 만든 후에 MAC값을 만들었기에 MAC 자체로는 plaintext를 유추하거나 하는 행위를 할 수 없기에 저 방법이 더 낫다.
+- MAC은 긴 가변 메세지를 secret key K를 이용해 fixed sized authenticator로 만드는 것이다. 그렇기에 many to one 기능이다. 
+- MAC이 만족해야하는 특성
+    - 같은 MAC을 갖는 또 다른 메세지를 찾는게 불가능해야함. 
+    - uniformly distributed해야함. 
+    - 메세지의 모든 비트에 공평하게 의존적이어야한다. 즉 한 비트만 바껴도 완전 다른 값이 나와야함.
+- DAA(data authentication algo) : MAC을 이용한 block cipher임. cipher block을 chaining해서 나온 값이 MAC값이다(CBC-MAC). 
+- *Hash Functions* : 가변길이->fixed size. 얘는 비밀키 k가 없다. 해시 함수는 public이다. 메세지에 대한 무결성을 체크할 수 있다. 메세지를 고정된 길이의 해시값으로 바꾸면 a의 private key로 암호화해서(서명단계) 메세지를 보낸다. 그러면 수신측 b에서 a의 공개키로 복호화해서 나온 서명값인 hash값과 메세지에 대해 hash를 취한 것과 compare해서 판단한다. 같다면 메세지에 대한 수정도 없고 서명에 대한 수정도 없었구나라 판단.  
+- Hash가 만족해야하는 특성
+    - 해시값이 주어졌을때 메세지를 찾는게 어려워야함(one way property) 
+    - 메세지 x가 주어졌을때 그 x의 해시값을 제너레이트 하는 또다른 메세지y를 찾는게 불가능해야함. = weak collision resistance (공격자 입장에서 더 어려움, collision 확률 낮음)
+    - 동일한 해시값을 갖는(어떤 값이든 노상관) 서로 다른 메세지 x,y를 찾는게 힘들어야한다. = strong collision resistance (collision은 동일한 해시값을 갖는 서로다른 메세지를 의미함. 이 경우 collision 확률 높음)
+- Birthday Paradox : 교실에 23명의 학생이 있으면 그들 중 생일이 같은 사람이 있을 확률이 0.5이다. 
+- conclusion is that need to use larger MAC/hash
+
+**14장** (영상)
+- *X.509*
+- Generation of public key certificate : 공신력 있는 기관인 CA의 private key를 사용자의 공개키와 해쉬값 취한 것에 붙여줘서 인증서를 만든다. 즉 유저id, 유저의 공개키, CA 정보에 해당 되는 내용을 모두 해시 취해서 해시값 만든 후 그걸 CA가 CA의 비밀키로 서명을 해줌. (공개키에 대한 인증서임). 그걸 verify하기 위해 위  유저id, 유저의 공개키, CA 정보에 대한 해시값을 만들어내고 인증서를 복호화해서(CA의 공개키로) 일치하는지 비교함. 즉 유저의 공개키가 맞다라는 인증서 자체의 유효성을 검사함.
+- *X.509 version 3* : 추가된 내용 : key and policy info, subject and issuer attributes, certification path constraints.
+- CA<< A >> : certificate for A signed by CA. 즉 CA의 공개키로 서명이 된 A의 공개키.  x1((x2))와 x2((B))를 인증 chaining 해서 B의 공개키를 얻을 수 있음 (*CA Hierarchy use*). 
+- *Authentication Protocol* 
+    - *one way* : 인증성 상에 있는 A의 공개키를 가지고 B가 verify 완료했으면 A의 타임스탬프, A가 생성한 난수, B의 공개키로 암호화된 AB간의 세션 키 등을 알 수 있음. B가 A를 인증할 수 있는거기에 원웨이임 (믿을 수 있는 A의 공개키를 가지고 검증을 한거라서).
+    - *two way* : 첫 단계는 one way 처럼 B가 A를 verify하고 두 번째 단계에선 A에게 받은 난수 값을 포함시켜 B의 비밀키로 서명해서 보낸다. 이때 B는 B의 랜덤 값도 보냄
+    - *three way* : 위 두 단계 후 A가 B의 랜덤 값을 A가 서명해서 B에게 다시 보냄(A가 잘 받았음을 confirm 해주기 위해). 
+
+
+
